@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
 Module for chorus detection in audio files.
 
@@ -7,18 +10,23 @@ on the processed audio data, and visualizing the predictions.
 """
 
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow logs (must be set before importing TensorFlow)
-import tensorflow as tf
-tf.get_logger().setLevel('ERROR')  # Suppress TensorFlow ERROR logs
-import warnings
-warnings.filterwarnings("ignore")  # Suppress all warnings
+# Configure TensorFlow logging before importing TensorFlow
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow logs
 
+import sys
 import argparse
 from functools import reduce
 from typing import List, Tuple
 import shutil
-import librosa
 import numpy as np
+import warnings
+import tensorflow as tf
+
+# Suppress warnings
+warnings.filterwarnings("ignore")  # Suppress all warnings
+tf.get_logger().setLevel('ERROR')  # Suppress TensorFlow ERROR logs
+
+import librosa
 from matplotlib import pyplot as plt
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
@@ -32,8 +40,12 @@ HOP_LENGTH = 128
 MAX_FRAMES = 300
 MAX_METERS = 201
 N_FEATURES = 15
-MODEL_PATH = "models/CRNN/best_model_V3.h5"
+MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+                         "models", "CRNN", "best_model_V3.h5")
 AUDIO_TEMP_PATH = "output/temp"
+
+# Create output directory if it doesn't exist
+os.makedirs("output", exist_ok=True)
 
 
 def extract_audio(url, output_path=AUDIO_TEMP_PATH):
@@ -334,23 +346,27 @@ def process_audio(audio_path, trim_silence=True, sr=SR, hop_length=HOP_LENGTH):
     Returns:
     - Tuple[np.ndarray, AudioFeature]: The processed audio and its features.
     """
-    if trim_silence:
-        strip_silence(audio_path)
+    try:
+        if trim_silence:
+            strip_silence(audio_path)
 
-    audio_features = AudioFeature(
-        audio_path=audio_path, sr=sr, hop_length=hop_length)
-    audio_features.extract_features()
-    audio_features.create_meter_grid()
-    audio_segments = segment_data_meters(
-        audio_features.combined_features, audio_features.meter_grid)
-    encoded_audio_segments = apply_hierarchical_positional_encoding(
-        audio_segments)
-    processed_audio = np.expand_dims(pad_song(encoded_audio_segments), axis=0)
+        audio_features = AudioFeature(
+            audio_path=audio_path, sr=sr, hop_length=hop_length)
+        audio_features.extract_features()
+        audio_features.create_meter_grid()
+        audio_segments = segment_data_meters(
+            audio_features.combined_features, audio_features.meter_grid)
+        encoded_audio_segments = apply_hierarchical_positional_encoding(
+            audio_segments)
+        processed_audio = np.expand_dims(pad_song(encoded_audio_segments), axis=0)
 
-    return processed_audio, audio_features
+        return processed_audio, audio_features
+    except Exception as e:
+        print(f"Error processing audio: {e}")
+        return None, None
 
 
-def load_CRNN_model(model_path: str) -> tf.keras.Model:
+def load_CRNN_model(model_path: str = MODEL_PATH) -> tf.keras.Model:
     """
     Load a CRNN model with custom loss and accuracy functions.
 
@@ -364,21 +380,38 @@ def load_CRNN_model(model_path: str) -> tf.keras.Model:
     Returns:
     - tf.keras.Model: Loaded Keras model.
     """
-    # Placeholder functions for loading the model
-    def custom_binary_crossentropy(y_true, y_pred):
-        return y_pred
+    try:
+        # Placeholder functions for loading the model
+        def custom_binary_crossentropy(y_true, y_pred):
+            return y_pred
 
-    def custom_accuracy(y_true, y_pred):
-        return y_pred
+        def custom_accuracy(y_true, y_pred):
+            return y_pred
 
-    custom_objects = {
-        'custom_binary_crossentropy': custom_binary_crossentropy,
-        'custom_accuracy': custom_accuracy
-    }
+        custom_objects = {
+            'custom_binary_crossentropy': custom_binary_crossentropy,
+            'custom_accuracy': custom_accuracy
+        }
 
-    model = tf.keras.models.load_model(
-        model_path, custom_objects=custom_objects)
-    return model
+        # Try to load the model with custom objects
+        model = tf.keras.models.load_model(
+            model_path, custom_objects=custom_objects, compile=False)
+        
+        # Compile the model with default optimizer and loss for prediction only
+        model.compile(optimizer='adam', loss='binary_crossentropy')
+        
+        return model
+    except Exception as e:
+        print(f"Error loading model from {model_path}: {e}")
+        print("Checking for model in Docker container path...")
+        
+        # Try Docker container path as fallback
+        docker_model_path = "/app/models/CRNN/best_model_V3.h5"
+        if model_path != docker_model_path and os.path.exists(docker_model_path):
+            print(f"Trying Docker path: {docker_model_path}")
+            return load_CRNN_model(docker_model_path)
+        else:
+            raise RuntimeError(f"Failed to load model: {e}")
 
 
 def smooth_predictions(data: np.ndarray) -> np.ndarray:
@@ -537,7 +570,7 @@ def plot_predictions(audio_features, binary_predictions):
     plt.show(block=False)
 
 
-def main(url: str, model_path: str, verbose: bool, plot: bool = True):
+def main(url: str, model_path: str = MODEL_PATH, verbose: bool = True, plot: bool = True):
     """
     Downloads audio, processes it, predicts chorus locations, and visualizes results.
 
@@ -547,7 +580,7 @@ def main(url: str, model_path: str, verbose: bool, plot: bool = True):
     - verbose (bool): If True, print detailed logs during the process.
     - plot (bool, optional): Whether to display the plot.
     """
-    while True:
+    try:
         if verbose:
             print("Extracting audio...")
         audio_path, video_name = extract_audio(url)
@@ -558,10 +591,17 @@ def main(url: str, model_path: str, verbose: bool, plot: bool = True):
         if verbose:
             print("Processing audio...")
         processed_audio, audio_features = process_audio(audio_path)
+        if processed_audio is None:
+            print("Failed to process audio. Please try a different video.")
+            return
 
         if verbose:
             print("Loading model...")
-        model = load_CRNN_model(model_path=model_path)
+        try:
+            model = load_CRNN_model(model_path=model_path)
+        except Exception as e:
+            print(f"Failed to load model: {e}")
+            return
 
         if verbose:
             print("Making predictions...")
@@ -569,35 +609,54 @@ def main(url: str, model_path: str, verbose: bool, plot: bool = True):
             model, processed_audio, audio_features, url, video_name)
 
         if plot:
-            print("Displaying plot...")
-            plot_predictions(audio_features, smoothed_predictions)
+            try:
+                print("Displaying plot...")
+                plot_predictions(audio_features, smoothed_predictions)
+            except Exception as e:
+                print(f"Could not display plot: {e}")
+                print("Continuing without visualization...")
 
         # Clear temporary files
-        if os.path.exists(AUDIO_TEMP_PATH):
-            shutil.rmtree(AUDIO_TEMP_PATH)
+        try:
+            if os.path.exists(AUDIO_TEMP_PATH):
+                shutil.rmtree(AUDIO_TEMP_PATH)
+        except Exception as e:
+            print(f"Warning: Could not clear temporary files: {e}")
 
         # Prompt for another video
         url = input(
             "Would you like to analyze another song? If so please enter the YouTube URL here or type 'exit' to quit: ")
         if url.lower() == 'exit':
-            break
+            return
+        else:
+            main(url, model_path, verbose, plot)
+    
+    except KeyboardInterrupt:
+        print("\nProcess interrupted by user.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 
 if __name__ == "__main__":
-    import argparse
     parser = argparse.ArgumentParser(description="Chorus Finder")
     parser.add_argument("--url", type=str,
                         help="YouTube URL of a song (optional)")
-    parser.add_argument("--model_path", type=str, default="models/CRNN/best_model_V3.h5",
-                        help="Path to the pretrained model (default: models/CRNN/best_model_V3.h5)")
+    parser.add_argument("--model_path", type=str, default=MODEL_PATH,
+                        help=f"Path to the pretrained model (default: {MODEL_PATH})")
     parser.add_argument("--verbose", action="store_true",
                         help="Verbose output", default=True)
     parser.add_argument("--plot", action="store_true",
                         help="Display plot of the audio waveform", default=True)
+    parser.add_argument("--no-plot", dest="plot", action="store_false",
+                        help="Disable plot display (useful for headless environments)")
     args = parser.parse_args()
 
-    if args.url:
-        main(args.url, args.model_path, args.verbose, args.plot)
-    else:
-        url = input("Please enter the YouTube URL of the song: ")
-        main(url, args.model_path, args.verbose, args.plot)
+    try:
+        if args.url:
+            main(args.url, args.model_path, args.verbose, args.plot)
+        else:
+            url = input("Please enter the YouTube URL of the song: ")
+            main(url, args.model_path, args.verbose, args.plot)
+    except Exception as e:
+        print(f"Application error: {e}")
+        sys.exit(1)

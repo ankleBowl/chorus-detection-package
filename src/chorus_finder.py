@@ -570,29 +570,45 @@ def plot_predictions(audio_features, binary_predictions):
     plt.show(block=False)
 
 
-def main(url: str, model_path: str = MODEL_PATH, verbose: bool = True, plot: bool = True):
+def main(input_source: str = None, model_path: str = MODEL_PATH, verbose: bool = True, plot: bool = True):
     """
-    Downloads audio, processes it, predicts chorus locations, and visualizes results.
+    Process audio from either a YouTube URL or local file path, predict chorus locations, and visualize results.
 
     Parameters:
-    - url (str): YouTube URL of the audio file.
-    - model_path (str): Path to the pretrained model.
-    - verbose (bool): If True, print detailed logs during the process.
-    - plot (bool, optional): Whether to display the plot.
+    - input_source (str): Either a YouTube URL or path to a local audio file
+    - model_path (str): Path to the pretrained model
+    - verbose (bool): If True, print detailed logs during the process
+    - plot (bool): Whether to display the plot
     """
     try:
         if verbose:
-            print("Extracting audio...")
-        audio_path, video_name = extract_audio(url)
-        if not audio_path:
-            print("Failed to extract audio from the provided URL.")
-            return
+            print("Processing input...")
+            
+        # Determine if input is a YouTube URL or local file
+        is_youtube = input_source.startswith(('http://', 'https://')) if input_source else False
+        
+        if is_youtube:
+            print("Note: YouTube download functionality may be temporarily unavailable due to YouTube's restrictions.")
+            print("If download fails, please try using a local audio file instead.")
+            print("\nAttempting to extract audio from YouTube...")
+            audio_path, video_name = extract_audio(input_source)
+            if not audio_path:
+                print("Failed to extract audio from the provided URL.")
+                return
+        else:
+            # Handle local audio file
+            if not os.path.exists(input_source):
+                print(f"Error: File not found at {input_source}")
+                return
+            audio_path = input_source
+            video_name = os.path.basename(audio_path)
 
+        # Rest of the processing remains the same
         if verbose:
             print("Processing audio...")
         processed_audio, audio_features = process_audio(audio_path)
         if processed_audio is None:
-            print("Failed to process audio. Please try a different video.")
+            print("Failed to process audio. Please try a different file.")
             return
 
         if verbose:
@@ -606,7 +622,7 @@ def main(url: str, model_path: str = MODEL_PATH, verbose: bool = True, plot: boo
         if verbose:
             print("Making predictions...")
         smoothed_predictions = make_predictions(
-            model, processed_audio, audio_features, url, video_name)
+            model, processed_audio, audio_features, input_source, video_name)
 
         if plot:
             try:
@@ -624,12 +640,12 @@ def main(url: str, model_path: str = MODEL_PATH, verbose: bool = True, plot: boo
             print(f"Warning: Could not clear temporary files: {e}")
 
         # Prompt for another video
-        url = input(
-            "Would you like to analyze another song? If so please enter the YouTube URL here or type 'exit' to quit: ")
-        if url.lower() == 'exit':
+        input_source = input(
+            "Would you like to analyze another song? If so please enter the input source here or type 'exit' to quit: ")
+        if input_source.lower() == 'exit':
             return
         else:
-            main(url, model_path, verbose, plot)
+            main(input_source, model_path, verbose, plot)
     
     except KeyboardInterrupt:
         print("\nProcess interrupted by user.")
@@ -638,9 +654,12 @@ def main(url: str, model_path: str = MODEL_PATH, verbose: bool = True, plot: boo
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Chorus Finder")
-    parser.add_argument("--url", type=str,
-                        help="YouTube URL of a song (optional)")
+    parser = argparse.ArgumentParser(description="Chorus Finder - Detect choruses in songs from YouTube URLs or local audio files")
+    input_group = parser.add_mutually_exclusive_group()
+    input_group.add_argument("--url", type=str,
+                        help="YouTube URL of a song")
+    input_group.add_argument("--file", type=str,
+                        help="Path to a local audio file")
     parser.add_argument("--model_path", type=str, default=MODEL_PATH,
                         help=f"Path to the pretrained model (default: {MODEL_PATH})")
     parser.add_argument("--verbose", action="store_true",
@@ -652,11 +671,26 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        if args.url:
-            main(args.url, args.model_path, args.verbose, args.plot)
-        else:
-            url = input("Please enter the YouTube URL of the song: ")
-            main(url, args.model_path, args.verbose, args.plot)
+        input_source = args.url or args.file
+        if not input_source:
+            print("\nChorus Detection Tool")
+            print("====================")
+            print("\nNote: YouTube download functionality may be temporarily unavailable")
+            print("due to YouTube's restrictions. If download fails, please use a local audio file.\n")
+            print("Choose input method:")
+            print("1. YouTube URL")
+            print("2. Local audio file")
+            choice = input("Enter choice (1 or 2): ")
+            
+            if choice == "1":
+                input_source = input("Please enter the YouTube URL of the song: ")
+            elif choice == "2":
+                input_source = input("Please enter the path to the audio file: ")
+            else:
+                print("Invalid choice")
+                sys.exit(1)
+        
+        main(input_source, args.model_path, args.verbose, args.plot)
     except Exception as e:
         print(f"Application error: {e}")
         sys.exit(1)

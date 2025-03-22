@@ -37,8 +37,11 @@ COPY src/ .
 # Copy the model file to the working directory
 COPY models/CRNN/best_model_V3.h5 /app/models/CRNN/
 
-# Create output directory
-RUN mkdir -p /app/output
+# Create directories for input and output
+RUN mkdir -p /app/input /app/output
+
+# Set volume mount points
+VOLUME ["/app/input", "/app/output"]
 
 # Run the script when the container starts
 CMD ["python", "chorus_finder.py"]

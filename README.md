@@ -4,26 +4,126 @@
 
 ## Project Overview
 
-This project focuses on developing an automated system for detecting choruses in songs using a Convolutional Recurrent Neural Network (CRNN). The model is trained on a custom dataset of 332 annotated songs, predominantly from electronic music genres, and achieved an F1 score of 0.864 (Precision: 0.831, Recall: 0.900) on an unseen test set of 50 songs (albeit from similar genres it was trained on).
+This project focuses on developing an automated system for detecting choruses in songs using a Convolutional Recurrent Neural Network (CRNN). The model is trained on a custom dataset of 332 annotated songs, predominantly from electronic music genres, and achieved an F1 score of 0.864 (Precision: 0.831, Recall: 0.900) on an unseen test set of 50 songs.
 
-If you'd like to see how well the model performs on your favorite songs, head over to the [ Streamlit app hosted on HuggingFace](https://huggingface.co/spaces/dennisvdang/Chorus-Detection) or use the [Dockerized command-line tool](#setup-and-running-the-cli-with-docker) that integrates the audio processing pipeline and pre-trained CRNN model to predict chorus locations in songs from YouTube links.
+You can try the model in three ways:
+1. [Streamlit app on HuggingFace](https://huggingface.co/spaces/dennisvdang/Chorus-Detection)
+2. Docker command-line tool (supports YouTube URLs and local audio files)
+3. Local installation with virtual environment
 
-And if you found this project interesting or informative, feel free to ⭐ star the repository! I welcome any questions, criticisms, or issues you may have. Additionally, if you have any ideas for collaboration, don't hesitate to connect with me. Your feedback and contributions are greatly appreciated!
+## Setup Options
 
-### Future Plans
+### Option 1: Docker Setup (Recommended)
 
-I have plans to develop a streamlined pipeline for contributors to preprocess and label their own music data to either train their own custom models or add to the existing dataset to hopefully improve the model's generalizability across various music genres. Stay tuned!
+#### Prerequisites
+- Install [Docker](https://www.docker.com/get-started)
+
+#### Building and Running
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/dennisvdang/chorus-detection.git
+   cd chorus-detection
+   ```
+
+2. Build the Docker image:
+   ```bash
+   docker build -t chorus-finder .
+   ```
+
+3. Run the container:
+   
+   For interactive mode (choose between YouTube or local file):
+   ```bash
+   docker run -it chorus-finder
+   ```
+   
+   For local audio files (mount a volume):
+   ```bash
+   docker run -it -v $(pwd)/input:/app/input chorus-finder python chorus_finder.py --file /app/input/your_song.mp3
+   ```
+
+   For YouTube URLs:
+   ```bash
+   docker run -it chorus-finder python chorus_finder.py --url "https://www.youtube.com/watch?v=your_video_id"
+   ```
+
+   Note: YouTube download functionality may be temporarily unavailable due to YouTube's restrictions.
+
+### Option 2: Local Installation with Virtual Environment
+
+#### Prerequisites
+- Python 3.11 or later
+- FFmpeg
+  - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
+  - Mac: `brew install ffmpeg`
+  - Linux: `sudo apt-get install ffmpeg`
+
+#### Setup Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/dennisvdang/chorus-detection.git
+   cd chorus-detection
+   ```
+
+2. Create and activate virtual environment:
+   
+   Windows:
+   ```bash
+   python -m venv venv
+   venv\Scripts\activate
+   ```
+   
+   macOS/Linux:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+
+4. Download the model:
+   - Get `best_model_V3.h5` from:
+     - [HuggingFace repo](https://huggingface.co/dennisvdang/chorus-detection/tree/main)
+     - [Google Drive](https://drive.google.com/file/d/1OoYc5RJwAJo9DmxBHOlP6Qyj1iFvjKoJ/view?usp=sharing)
+   - Place in `models/CRNN/` directory
+
+#### Running the CLI Tool
+
+Basic usage (interactive mode):
+```bash
+python src/chorus_finder.py
+```
+
+Analyze YouTube video:
+```bash
+python src/chorus_finder.py --url "https://www.youtube.com/watch?v=your_video_id"
+```
+
+Analyze local audio file:
+```bash
+python src/chorus_finder.py --file "path/to/your/audio.mp3"
+```
+
+Additional options:
+```bash
+python src/chorus_finder.py --no-plot  # Disable visualization
+python src/chorus_finder.py --verbose  # Show detailed progress
+```
 
 ## Project Resources
 
 Below, you'll find information on where to locate specific files and their purposes:
 
 - [`data/clean_labeled.csv`](data/clean_labeled.csv): The labeled dataset used to train the CRNN.
-- [`notebooks/Automated-Chorus-Detection.ipynb`](notebooks/Automated-Chorus-Detection.ipynb): Main development notebook. Includes the code for the audio signal processing pipeline, CRNN model architecture, training, testing, and prediction visualizations.
-- [`notebooks/Preprocessing.ipynb`](notebooks/Preprocessing.ipynb): Covers the audio preprocessing steps to format songs uniformly, trim audio silences, and extract metadata using Spotify's API.
-- [`docs/Data_Annotation_Guide.pdf`](docs/Data_Annotation_Guide.pdf): A guide detailing the manual annotation process for labeling choruses in songs.
-- [`docs/Capstone_Final_Report.pdf`](docs/Capstone_Final_Report.pdf): A PDF report detailing the end-to-end data science process.
-- [`models/CRNN/best_model_V3.h5`](models/CRNN/best_model_V3.h5): The best performing CRNN model trained on the annotated dataset. **If you're unable to download the model file due to quota limit, you can visit these links:** [HuggingFace repo](https://huggingface.co/dennisvdang/chorus-detection/tree/main), [Google Drive link](https://drive.google.com/file/d/1OoYc5RJwAJo9DmxBHOlP6Qyj1iFvjKoJ/view?usp=sharing)
+- [`notebooks/Automated-Chorus-Detection.ipynb`](notebooks/Automated-Chorus-Detection.ipynb): Main development notebook.
+- [`notebooks/Preprocessing.ipynb`](notebooks/Preprocessing.ipynb): Audio preprocessing steps.
+- [`docs/Data_Annotation_Guide.pdf`](docs/Data_Annotation_Guide.pdf): Manual annotation process guide.
+- [`docs/Capstone_Final_Report.pdf`](docs/Capstone_Final_Report.pdf): Detailed project report.
+- [`models/CRNN/best_model_V3.h5`](models/CRNN/best_model_V3.h5): Pre-trained CRNN model.
 
 ## Project Technical Summary
 
@@ -109,29 +209,25 @@ The model achieved strong results on the held-out test set as shown in the summa
 
 ![Confusion Matrix](./images/confusion_matrix.png)
 
-## Setup and Running the CLI with Docker
+## Troubleshooting
 
-![Demo](images/chorus-detection-preview.gif)
+### Docker Issues
+- If the container fails to build, ensure all required files are present
+- For visualization issues, use the `--no-plot` flag
+- Mount volumes correctly for local file access
 
-### Prerequisites
+### Virtual Environment Issues
+- Ensure FFmpeg is installed and in your system PATH
+- Verify the model file is in the correct location
+- Check Python version compatibility (3.11+ recommended)
 
-- Download and install Docker from the official website - [https://www.docker.com/get-started](https://www.docker.com/get-started)
+### YouTube Download Issues
+- YouTube functionality may be temporarily unavailable due to restrictions
+- Try using local audio files as an alternative
+- Ensure you have a stable internet connection
 
-### Step 1: Clone the Repository
+If you found this project interesting or informative, feel free to ⭐ star the repository! I welcome any questions, criticisms, or issues you may have.
 
-```bash
-git clone https://github.com/dennisvdang/chorus-detection.git
-cd chorus-detection
-```
+### Future Plans
 
-### Step 2: Build the Docker Image
-
-```bash
-docker build -t chorus-finder .
-```
-
-### Step 3: Run the Docker Container
-
-```bash
-docker run -it chorus-finder
-```
+I have plans to develop a streamlined pipeline for contributors to preprocess and label their own music data to either train their own custom models or add to the existing dataset to hopefully improve the model's generalizability across various music genres. Stay tuned!

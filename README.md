@@ -1,129 +1,47 @@
-# Automated Chorus Detection
+# Automated Chorus Detection [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)](https://github.com/dennisvdang/chorus-detection)
 
 ![Chorus Prediction](./images/131.webp)
 
-## Project Overview
+## Overview
 
-This project focuses on developing an automated system for detecting choruses in songs using a Convolutional Recurrent Neural Network (CRNN). The model is trained on a custom dataset of 332 annotated songs, predominantly from electronic music genres, and achieved an F1 score of 0.864 (Precision: 0.831, Recall: 0.900) on an unseen test set of 50 songs.
+A convolutional recurrent neural network model trained to identify, segment, and label choruses in music. The model was initially trained on 332 annotated songs from electronic music genres and achieved an F1 score of 0.864 (Precision: 0.831, Recall: 0.900) on unseen test data.
 
-You can try the model in three ways:
-1. [Streamlit app on HuggingFace](https://huggingface.co/spaces/dennisvdang/Chorus-Detection)
-2. Docker command-line tool (supports YouTube URLs and local audio files)
-3. Local installation with virtual environment
+## Quick Links
 
-## Setup Options
+- [Try the model on HuggingFace Spaces](https://huggingface.co/spaces/dennisvdang/Chorus-Detection)
+- [Labeled training dataset of 332 songs (audio files not included)](data/clean_labeled.csv)
+- [Pre-trained model file](models/CRNN/best_model_V3.h5)
+- [Model training notebook](notebooks/Automated-Chorus-Detection.ipynb)
+- [Audio preprocessing notebook](notebooks/Preprocessing.ipynb)
+- [Music annotation process](docs/Data_Annotation_Guide.pdf)
+- [Project PDF writeup](docs/Capstone_Final_Report.pdf)
 
-### Option 1: Docker Setup (Recommended)
+## Quick Install (Conda)
 
-#### Prerequisites
-- Install [Docker](https://www.docker.com/get-started)
+Clone this repository:
 
-#### Building and Running
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/dennisvdang/chorus-detection.git
-   cd chorus-detection
-   ```
-
-2. Build the Docker image:
-   ```bash
-   docker build -t chorus-finder .
-   ```
-
-3. Run the container:
-   
-   For interactive mode (choose between YouTube or local file):
-   ```bash
-   docker run -it chorus-finder
-   ```
-   
-   For local audio files (mount a volume):
-   ```bash
-   docker run -it -v $(pwd)/input:/app/input chorus-finder python chorus_finder.py --file /app/input/your_song.mp3
-   ```
-
-   For YouTube URLs:
-   ```bash
-   docker run -it chorus-finder python chorus_finder.py --url "https://www.youtube.com/watch?v=your_video_id"
-   ```
-
-   Note: YouTube download functionality may be temporarily unavailable due to YouTube's restrictions.
-
-### Option 2: Local Installation with Virtual Environment
-
-#### Prerequisites
-- Python 3.11 or later
-- FFmpeg
-  - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
-  - Mac: `brew install ffmpeg`
-  - Linux: `sudo apt-get install ffmpeg`
-
-#### Setup Steps
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/dennisvdang/chorus-detection.git
-   cd chorus-detection
-   ```
-
-2. Create and activate virtual environment:
-   
-   Windows:
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate
-   ```
-   
-   macOS/Linux:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
-
-4. Download the model:
-   - Get `best_model_V3.h5` from:
-     - [HuggingFace repo](https://huggingface.co/dennisvdang/chorus-detection/tree/main)
-     - [Google Drive](https://drive.google.com/file/d/1OoYc5RJwAJo9DmxBHOlP6Qyj1iFvjKoJ/view?usp=sharing)
-   - Place in `models/CRNN/` directory
-
-#### Running the CLI Tool
-
-Basic usage (interactive mode):
-```bash
-python src/chorus_finder.py
+```
+git clone https://github.com/dennisvdang/chorus-detection.git
+cd chorus-detection
 ```
 
-Analyze YouTube video:
-```bash
-python src/chorus_finder.py --url "https://www.youtube.com/watch?v=your_video_id"
+Create and activate the conda environment:
+
+```
+conda env create -f environment.yml
+conda activate chorus-detection
 ```
 
-Analyze local audio file:
-```bash
-python src/chorus_finder.py --file "path/to/your/audio.mp3"
+### CLI Tool Usage
+
+1. Place audio files you want to analyze in the `input` folder.
+
+2. Run the CLI tool:
+
+```
+python chorus-detection-CLI.py
 ```
 
-Additional options:
-```bash
-python src/chorus_finder.py --no-plot  # Disable visualization
-python src/chorus_finder.py --verbose  # Show detailed progress
-```
-
-## Project Resources
-
-Below, you'll find information on where to locate specific files and their purposes:
-
-- [`data/clean_labeled.csv`](data/clean_labeled.csv): The labeled dataset used to train the CRNN.
-- [`notebooks/Automated-Chorus-Detection.ipynb`](notebooks/Automated-Chorus-Detection.ipynb): Main development notebook.
-- [`notebooks/Preprocessing.ipynb`](notebooks/Preprocessing.ipynb): Audio preprocessing steps.
-- [`docs/Data_Annotation_Guide.pdf`](docs/Data_Annotation_Guide.pdf): Manual annotation process guide.
-- [`docs/Capstone_Final_Report.pdf`](docs/Capstone_Final_Report.pdf): Detailed project report.
-- [`models/CRNN/best_model_V3.h5`](models/CRNN/best_model_V3.h5): Pre-trained CRNN model.
 
 ## Project Technical Summary
 
@@ -140,10 +58,6 @@ The dataset consists of 332 manually labeled songs, predominantly from electroni
 - Features such as Root Mean Squared energy, key-invariant chromagrams, Melspectrograms, MFCCs, and tempograms were extracted. These features were decomposed using Non-negative Matrix Factorization using an optimal number of components derived in our exploratory analysis.
 
 - Songs were segmented into timesteps based on musical meters, with positional and grid encoding applied to every audio frame and meter, respectively. Songs and labels were uniformly padded and split into train/validation/test sets, processed into batch sizes of 32 using a custom generator.
-
-- Songs and labels were padded to ensure consistent input lengths for the convolutional layers.
-
-- Data is split into train/validation/test (70/15/15) sets and processed into batch sizes of 32 using a custom generator.
 
 Below are examples of audio feature visualizations of a song with 3 choruses (highlighted in green). The gridlines represent the musical meters, which are used to divide the song into segments; these segments then serve as the timesteps for the CRNN input.
 
@@ -209,25 +123,12 @@ The model achieved strong results on the held-out test set as shown in the summa
 
 ![Confusion Matrix](./images/confusion_matrix.png)
 
-## Troubleshooting
+## Works in progress
 
-### Docker Issues
-- If the container fails to build, ensure all required files are present
-- For visualization issues, use the `--no-plot` flag
-- Mount volumes correctly for local file access
+- Pytorch implementation using the same CRNN architecture
+- Additional training data for other musical segments (e.g. intro, pre-chorus, bridge, verse)
+- Music data labeling interface for contributions
 
-### Virtual Environment Issues
-- Ensure FFmpeg is installed and in your system PATH
-- Verify the model file is in the correct location
-- Check Python version compatibility (3.11+ recommended)
+## Contributing
 
-### YouTube Download Issues
-- YouTube functionality may be temporarily unavailable due to restrictions
-- Try using local audio files as an alternative
-- Ensure you have a stable internet connection
-
-If you found this project interesting or informative, feel free to ⭐ star the repository! I welcome any questions, criticisms, or issues you may have.
-
-### Future Plans
-
-I have plans to develop a streamlined pipeline for contributors to preprocess and label their own music data to either train their own custom models or add to the existing dataset to hopefully improve the model's generalizability across various music genres. Stay tuned!
+If you found this project interesting or informative, feel free to star the repository! Issues, pull requests, and feedback are welcome.

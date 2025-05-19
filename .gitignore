@@ -1,7 +1,26 @@
 venv/
 *.mp3
+*.wav
+*.ogg
+*.flac
+*.m4a
+*.aac
+*.wma
 *.pkl
 src/chorus_finder_V2.py
 models/CRNN/best_model_V2.h5
 
 data/clean_labeled_with_tracknames.csv
+data/*
+!data/clean_labeled.csv
+
+.cursor
+input/*.mp3
+input/*.wav
+input/*.ogg
+input/*.flac
+input/*.m4a
+docs\Automated_Chorus_Detection_Slides.pdf
+docs\Automated_Chorus_Detection.pptx
+docs\model_metrics.csv
+docs\Project Proposal_ Automated Chorus Detection.pdf

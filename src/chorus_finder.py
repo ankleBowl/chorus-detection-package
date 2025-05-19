@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-Module for chorus detection in audio files.
+[DEPRECATED] Module for chorus detection in audio files.
+
+This file has been replaced by chorus-detection-CLI.py in the root directory.
+Please use that file instead.
 
 This module provides functions for downloading audio files from YouTube URLs,
 processing audio data, loading a pre-trained CRNN model, making predictions
@@ -10,10 +13,16 @@ on the processed audio data, and visualizing the predictions.
 """
 
 import os
+import sys
+
+print("WARNING: This file is deprecated and will be removed in a future version.")
+print("Please use chorus-detection-CLI.py in the root directory instead.")
+print("Exiting...")
+sys.exit(1)
+
 # Configure TensorFlow logging before importing TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow logs
 
-import sys
 import argparse
 from functools import reduce
 from typing import List, Tuple

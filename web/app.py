@@ -189,7 +189,6 @@ def main():
     
     st.title("🎵 Chorus Detection App")
     st.markdown("""
-    This app automatically identifies chorus sections in songs using deep learning.
     Upload an audio file or provide a YouTube URL to get started.
     """)
     

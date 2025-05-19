@@ -1,4 +1,4 @@
-# Use a Python base image consistent with environment.yml
+# Use a Python base image
 FROM python:3.8-slim
 
 # Set environment variables to improve Python behavior in containers
@@ -19,30 +19,25 @@ RUN apt-get update && \
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file to the working directory
-COPY requirements.txt .
+# Copy the package files
+COPY setup.py requirements.txt ./
 
-# Install the Python dependencies
+# Install base requirements
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# Copy the source code and CLI script
-COPY src/ ./src/
-COPY chorus-detection-CLI.py .
-COPY streamlit_app.py .
+# Install the package itself
+COPY . .
+RUN pip install -e .
 
-# Copy the model file to the working directory
-RUN mkdir -p /app/models/CRNN
-COPY models/CRNN/best_model_V3.h5 /app/models/CRNN/
-
-# Create directories for input and output
+# Create directories for input and output if they don't exist
 RUN mkdir -p /app/input /app/output
 
 # Set volume mount points
-VOLUME ["/app/input", "/app/output"]
+VOLUME ["/app/input", "/app/output", "/app/models"]
 
-# Expose port for Streamlit (if used)
+# Expose port for Streamlit
 EXPOSE 8501
 
-# Run the CLI script by default when the container starts
-CMD ["python", "chorus-detection-CLI.py"]
+# Default to showing help message
+CMD ["chorus-detection", "--help"]

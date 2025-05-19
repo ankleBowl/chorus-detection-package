@@ -16,32 +16,51 @@ A convolutional recurrent neural network model trained to identify, segment, and
 - [Music annotation process](docs/Data_Annotation_Guide.pdf)
 - [Project PDF writeup](docs/Capstone_Final_Report.pdf)
 
-## Quick Install (Conda)
+## Quick Installation
 
-Clone this repository:
-
-```
+```bash
+# Clone repository
 git clone https://github.com/dennisvdang/chorus-detection.git
 cd chorus-detection
-```
 
-Create and activate the conda environment:
-
-```
+# Set up environment
 conda env create -f environment.yml
 conda activate chorus-detection
+pip install -r requirements.txt
+
+# Run CLI
+python cli/cli_app.py
+
+# Or run web app
+streamlit run web/app.py
 ```
 
-### CLI Tool Usage
-
-1. Place audio files you want to analyze in the `input` folder.
-
-2. Run the CLI tool:
+## Project Structure
 
 ```
-python chorus-detection-CLI.py
+chorus-detection/
+│
+├── core/                 # Core functionality
+│   ├── audio_processor.py   # Audio processing and feature extraction
+│   ├── model.py             # Model loading and prediction
+│   ├── utils.py             # Utility functions
+│   └── visualization.py     # Plotting and visualization
+│
+├── cli/                  # Command-line interface
+│   └── cli_app.py           # CLI application
+│
+├── web/                  # Web interface
+│   └── app.py               # Streamlit web application
+│
+├── models/               # Pre-trained models
+├── input/                # Input audio files
+├── output/               # Output files and visualizations
+│
+├── setup.py              # Package setup
+├── requirements.txt      # Package requirements
+├── Dockerfile            # Docker configuration
+└── docker-compose.yml    # Docker Compose configuration
 ```
-
 
 ## Project Technical Summary
 

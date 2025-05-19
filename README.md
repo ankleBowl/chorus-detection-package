@@ -28,11 +28,12 @@ conda env create -f environment.yml
 conda activate chorus-detection
 pip install -r requirements.txt
 
-# Run CLI
-python cli/cli_app.py
-
-# Or run web app
+# With conda environment activated
+# Run the web-app locally (recommended)
 streamlit run web/app.py
+
+# Or run the CLI
+python cli/cli_app.py
 ```
 
 ## Project Structure

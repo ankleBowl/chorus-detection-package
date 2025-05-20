@@ -111,7 +111,7 @@ def run_cli():
             
             while True:
                 print("\nChoose input method:")
-                print("1. Local audio file (from the 'input' folder)")
+                print("1. Local audio file (from the 'data/processed' folder)")
                 print("2. YouTube URL")
                 print("3. Exit")
                 choice = input("\nEnter choice (1, 2, or 3): ")

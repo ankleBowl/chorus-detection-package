@@ -4,7 +4,7 @@
 
 ## Overview
 
-A convolutional recurrent neural network model trained to identify, segment, and label choruses in music. The model was initially trained on 332 annotated songs from electronic music genres and achieved an F1 score of 0.864 (Precision: 0.831, Recall: 0.900) on unseen test data.
+A hierarchical Convolutional Recurrent Neural Network designed for musical structure analysis, specifically optimized for detecting choruses in music recordings. The model was initially trained on 332 annotated songs from electronic music genres and achieved an F1 score of 0.864 (Precision: 0.831, Recall: 0.900) on unseen test data. For more details, scroll down to the [Project Technical Summary section](#project-technical-summary).
 
 ## Quick Links
 
@@ -12,7 +12,6 @@ A convolutional recurrent neural network model trained to identify, segment, and
 - [Labeled training dataset of 332 songs (audio files not included)](data/clean_labeled.csv)
 - [Pre-trained model file](models/CRNN/best_model_V3.h5)
 - [Model training notebook](notebooks/Automated-Chorus-Detection.ipynb)
-- [Audio preprocessing notebook](notebooks/Preprocessing.ipynb)
 - [Music annotation process](docs/Data_Annotation_Guide.pdf)
 - [Project PDF writeup](docs/Capstone_Final_Report.pdf)
 
@@ -86,13 +85,25 @@ Below are examples of audio feature visualizations of a song with 3 choruses (hi
 ![chromagram](./images/chromagram_stacked.png)
 ![tempogram](./images/tempogram.png)
 
-### Modeling
+### Model Architecture
 
-The CRNN model architecture includes:
+The model employs a two-tier architecture that respects the heirarchical structure of music (frames → meters → song)
 
-- Three 1D convolutional layers with ReLU and max-pooling to extract local patterns.
-- A Bidirectional LSTM layer to model long-range temporal dependencies.
-- A TimeDistributed Dense output layer with sigmoid activation for meter-wise predictions.
+**Input Features:**
+
+The model receives as input a song's feature vector (NMF-activated features derived from RMS, mel spectrogram, chromagram, tempogram, and MFCCs). These are computed per frame and grouped by musical meter.
+
+**CNN Layers:**
+
+The CNN layers (3 Conv1D + MaxPooling1D layers) apply a series of learnable filters to the input features, sliding across the time (frame) dimension within each meter segment, and outputs a single feature vector (embedding) that summarizes the temporal information found within that meter. Note that there is no information shared *between* meters at this stage; each meter’s frames are processed in isolation.
+
+**LSTM Layer:**
+
+After the CNN layers, the sequence of meter embeddings that make up the input song is passed to a bidirectional LSTM, allowing the model to capture both past and future context across the song’s structure. The LSTM outputs a sequence of hidden states, one for each meter, which are then used for final classification.
+
+**Output Layer:**
+
+A TimeDistributed dense layer with a sigmoid activation is applied to the LSTM outputs, producing a probability for each meter indicating the likelihood that it corresponds to a chorus section. The model is trained using a custom binary cross-entropy loss that masks out padded values, allowing the model to learn from variable-length songs.
 
 ``` python
 def create_crnn_model(max_frames_per_meter, max_meters, n_features):

@@ -23,17 +23,12 @@ audio, sr = librosa.load(AUDIO_PATH)
 out = model.predict(audio, sr)
 ```
 
-# Automated Chorus Detection [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)](https://github.com/dennisvdang/chorus-detection)
-
-![Chorus Prediction](./images/131.webp)
-
 ## Overview
 
 A hierarchical convolutional recurrent neural network designed for musical structure analysis, specifically optimized for detecting choruses in music recordings. The model was initially trained on 332 annotated songs from electronic music genres and achieved an F1 score of 0.864 (Precision: 0.831, Recall: 0.900) on unseen test data. For more details, scroll down to the [Project Technical Summary section](#project-technical-summary).
 
 ## Quick Links
 
-- [Try the model on HuggingFace Spaces](https://huggingface.co/spaces/dennisvdang/Chorus-Detection)
 - [Labeled training dataset of 332 songs (audio files not included)](data/clean_labeled.csv)
 - [Pre-trained model file](chorus_detection/models/CRNN/best_model_V3.h5)
 - [Model training notebook](notebooks/Automated-Chorus-Detection.ipynb)

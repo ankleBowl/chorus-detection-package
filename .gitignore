@@ -38,3 +38,6 @@ docs/*
 # Jupyter notebook checkpoints
 notebooks/.ipynb_checkpoints/
 notebooks/scratch.ipynb
+build/
+chorus_detection.egg-info/
+__pycache__/

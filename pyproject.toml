@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chorus-detection"
+version = "0.1.0"
+description = "A tool for detecting chorus sections in audio files using a pretrained CRNN model"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Dennis Dang" }]
+requires-python = ">=3.8"
+keywords = ["audio", "music", "chorus", "detection", "deep-learning", "librosa"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+]
+dependencies = [
+    "tensorflow>=2.13.0",
+    "numpy>=1.24.0,<2.0.0",
+    "matplotlib>=3.7.0",
+    "scikit-learn>=1.3.0",
+    "librosa>=0.10.0",
+    "soundfile>=0.12.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "black>=23.0", "flake8>=6.0", "build", "twine"]
+
+[project.urls]
+Homepage = "https://github.com/dennisvdang/chorus-detection"
+Repository = "https://github.com/dennisvdang/chorus-detection"
+"Bug Tracker" = "https://github.com/dennisvdang/chorus-detection/issues"
+
+[project.scripts]
+chorus-detection = "chorus_detection.cli.cli_app:run_cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["chorus_detection*"]
+
+[tool.setuptools.package-data]
+"chorus_detection" = ["models/**/*.h5"]
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310"]

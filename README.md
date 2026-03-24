@@ -44,7 +44,7 @@ chorus-detection/
 │   │   ├── audio_processor.py   # Audio processing and feature extraction
 │   │   ├── model.py             # Model loading and prediction
 │   │   ├── utils.py             # Utility functions
-│   │   └── visualization.py     # Plotting and visualization
+│   │   └── wrapper.py           # Easy to use API that supports file paths and numpy waveforms
 │   ├── cli/                 # Command-line interface
 │   │   └── cli_app.py           # CLI application
 │   └── models/              # Pre-trained models

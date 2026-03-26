@@ -13,6 +13,7 @@ import os
 import sys
 import argparse
 import warnings
+import traceback
 
 # Suppress warnings
 warnings.filterwarnings("ignore")
@@ -59,6 +60,7 @@ def main(input_source: str = None, model_path: str = MODEL_PATH, verbose: bool =
         print("\nProcess interrupted by user.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+        traceback.print_exc()
 
 
 def run_cli():

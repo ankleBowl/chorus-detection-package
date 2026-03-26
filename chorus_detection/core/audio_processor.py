@@ -274,12 +274,13 @@ def process_audio_array(audio: np.ndarray, sr: int, hop_length: int = HOP_LENGTH
     padded_song = np.expand_dims(padded_song, axis=0)
     return padded_song, audio_features
 
-def process_audio(audio_path, sr=SR, hop_length=HOP_LENGTH):
+def process_audio(audio_path, hop_length=HOP_LENGTH):
     """Process an audio file for chorus detection."""
     try:
+        audio, sr = librosa.load(audio_path)
 
         # Extract audio features
-        audio_features = AudioFeature(audio_path, sr=sr, hop_length=hop_length)
+        audio_features = AudioFeature(audio, sr=sr, hop_length=hop_length)
         audio_features.extract_features()
         meter_grid = audio_features.create_meter_grid()
 

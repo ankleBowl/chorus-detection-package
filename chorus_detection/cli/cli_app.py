@@ -9,9 +9,7 @@ either from local audio files or YouTube URLs.
 """
 
 import os
-# Configure TensorFlow logging before importing TensorFlow
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow logs
-
+#
 import sys
 import argparse
 import warnings

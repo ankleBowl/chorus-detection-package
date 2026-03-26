@@ -8,8 +8,7 @@ import tensorflow as tf
 import librosa
 
 # Set default model path
-MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
-                         "models", "CRNN", "best_model_V3.h5")
+MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "CRNN", "best_model_V3.h5")
 
 
 def load_CRNN_model(model_path: str = MODEL_PATH) -> tf.keras.Model:
@@ -34,7 +33,9 @@ def load_CRNN_model(model_path: str = MODEL_PATH) -> tf.keras.Model:
             'custom_binary_crossentropy': custom_binary_crossentropy,
             'custom_accuracy': custom_accuracy
         }
-        return tf.keras.models.load_model(model_path, custom_objects=custom_objects)
+        
+        model = tf.keras.models.load_model(model_path, custom_objects=custom_objects)
+        return model
     except Exception as e:
         print(f"Error loading model: {e}")
         return None
@@ -78,7 +79,7 @@ def smooth_predictions(data: np.ndarray) -> np.ndarray:
     return binary_smoothed
 
 
-def make_predictions(model, processed_audio, audio_features, verbose: bool = False):
+def make_predictions(model, processed_audio, audio_features, torch = True, verbose: bool = False):
     """Make chorus predictions using the loaded model."""
     # Generate predictions
     raw_predictions = model.predict(processed_audio).squeeze()
@@ -132,3 +133,6 @@ def make_predictions(model, processed_audio, audio_features, verbose: bool = Fal
             print("No choruses detected in this audio file.")
 
     return smoothed_predictions, chorus_start_times, chorus_end_times 
+
+
+        

@@ -1,5 +1,7 @@
 # Automated Chorus Detection - Package
-This is a package built from this [repository](https://github.com/dennisvdang/chorus-detection). For transparency while the original code is not vibe-coded, this is.
+This is a package built from this [repository](https://github.com/dennisvdang/chorus-detection). For transparency while the original code is not vibe-coded, this is (very lightly) vibe coded.
+
+Also, while the original model was written in Tensorflow/Keras, this package uses PyTorch and the model has been fully ported to PyTorch so that to reduce dependacies in the projects I will use this with (which also use PyTorch already).
 
 ## Quick Installation
 

@@ -6,9 +6,7 @@ Also, while the original model was written in Tensorflow/Keras, this package use
 ## Quick Installation
 
 ```bash
-git clone https://github.com/anklebowl/chorus-detection.git
-cd chorus-detection
-pip install .
+pip install git+https://github.com/ankleBowl/chorus-detection-package.git
 ```
 
 ```bash

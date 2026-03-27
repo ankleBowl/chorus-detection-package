@@ -47,7 +47,7 @@ where = ["."]
 include = ["chorus_detection*"]
 
 [tool.setuptools.package-data]
-"chorus_detection" = ["models/**/*.h5"]
+"chorus_detection" = ["models/**/*.pth"]
 
 [tool.black]
 line-length = 100
